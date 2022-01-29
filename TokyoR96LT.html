@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="author" content="niszet">
+  <title>How many R packages are archived?</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="TokyoR96LT_files/reveal.js-4.1.2/dist/reset.css">
+  <link rel="stylesheet" href="TokyoR96LT_files/reveal.js-4.1.2/dist/reveal.css">
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <link rel="stylesheet" href="TokyoR96LT_files/reveal.js-4.1.2/dist/theme/blood.css" id="theme">
+
+    <!-- customize start -->
+<style type="text/css">
+.reveal section img {
+  background: rgba(255, 255, 255, 0.85);
+}
+</style>
+
+  <!-- some tweaks to reveal css -->
+  <style type="text/css">
+    .reveal h1 { font-size: 2.0em; }
+    .reveal h2 { font-size: 1.5em;  }
+    .reveal h3 { font-size: 1.25em;	}
+    .reveal h4 { font-size: 1em;	}
+
+    .reveal .slides>section,
+    .reveal .slides>section>section {
+      padding: 0px 0px;
+    }
+
+
+
+    .reveal table:not(.hljs-ln) {
+      border-width: 1px;
+      border-spacing: 2px;
+      border-style: dotted;
+      border-color: gray;
+      border-collapse: collapse;
+      font-size: 0.7em;
+    }
+
+    .reveal table:not(.hljs-ln) th {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      font-weight: bold;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+    .reveal table:not(.hljs-ln) td {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+    .reveal .slide-menu-button {
+      left: 105px !important;
+    }
+
+  </style>
+
+    <style type="text/css">code{white-space: pre;}</style>
+    <!-- customize end -->
+
+  <script src="TokyoR96LT_files/header-attrs-2.11/header-attrs.js"></script>
+  <link href="TokyoR96LT_files/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+  <link href="TokyoR96LT_files/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide">
+  <h1 class="title">Tokyo.R 96</h1>
+  <p class="subtitle">Rのパッケージはどのくらい<br>Archiveされているか？</p>
+  <p class="author">niszet</p>
+  <p class="date">2022/01/29</p>
+</section>
+
+<section id="自己紹介" class="slide level2">
+<h2>自己紹介</h2>
+<ul>
+<li><p>なまえ : niszet</p></li>
+<li><p>R歴 : 5年目?の初心者</p></li>
+<li><p>Twitter : <span class="citation" data-cites="niszet0">@niszet0</span></p></li>
+<li><p>GitHub : <a href="https://github.com/niszet" class="uri">https://github.com/niszet</a><br />
+<img src="Figs/self.jpg" width="25%"/></p></li>
+<li><p>今年はPandocの活動を再開したい</p></li>
+</ul>
+</section>
+<section id="背景" class="slide level2">
+<h2>背景</h2>
+<ul>
+<li><p>年末年始にOSSのセキュリティや継続性の話題があった。</p>
+<ul>
+<li><p>故意・過失でバグの混入は起こり得る</p></li>
+<li><p>開発者・メンテナが力尽きてしまうケースも。</p></li>
+</ul></li>
+<li><p>RもCRAN登録時や更新時にはチェックが入るが、処理内容の妥当性は保証されない。</p></li>
+<li><p>関数の挙動やパッケージのコードをそれぞれ確認して対策しましょう</p></li>
+</ul>
+</section>
+<section id="rのパッケージのメンテ切れ問題" class="slide level2">
+<h2>Rのパッケージのメンテ切れ問題</h2>
+<ul>
+<li><p>毎年沢山のパッケージがArchivedになっている</p>
+<ul>
+<li>Rのバージョンアップで動かなくなるなど</li>
+<li>古い版の入手自体は可能だが無保証</li>
+</ul></li>
+<li><p>今回は以下を調べた</p>
+<ul>
+<li>アーカイブされているパッケージ数</li>
+<li>アーカイブされた年</li>
+<li>アーカイブされた理由</li>
+</ul></li>
+<li><p>コードは後日公開</p></li>
+</ul>
+</section>
+<section id="情報源" class="slide level2">
+<h2>情報源</h2>
+<ul>
+<li><p>CRANには欲しい情報のリストそのものはなさそう</p></li>
+<li><p>CRANのページをスクレイピングして集める</p>
+<ul>
+<li><p><a href="https://cran.r-project.org/web/packages/available_packages_by_name.html">Available CRAN Packages By Name</a></p>
+<ul>
+<li>パッケージ名が取得できる</li>
+</ul></li>
+<li><p><a href="https://cran.r-project.org/src/contrib/Archive/">Archived CRAN Packages</a></p>
+<ul>
+<li>パッケージ名と日付が取得できる</li>
+</ul></li>
+<li><p>ArchivedにあってAvailableにないものが”削除されたパッケージ”と判断できる。</p></li>
+</ul></li>
+</ul>
+</section>
+<section id="前処理" class="slide level2">
+<h2>前処理</h2>
+<ul>
+<li><p>削除されたパッケージは本来パッケージがあったページに日付とその理由が書いてある。<br />
+例:<br />
+</p>
+<p><img src="Figs/err_msg.PNG" width="100%"/></p>
+<ul>
+<li><p>日付がない時はhtmlのヘッダ情報から抽出</p></li>
+<li><p>意外と理由は自由記述だった。typoもある。</p></li>
+<li><p>理由は独断と偏見で7項目に分類した（手作業）</p></li>
+</ul></li>
+</ul>
+</section>
+<section id="アーカイブされているパッケージ数" class="slide level2">
+<h2>アーカイブされているパッケージ数</h2>
+<pre><code>## [1] &quot;利用可能なパッケージの数&quot;</code></pre>
+<pre><code>## [1] &quot;18716&quot;</code></pre>
+<pre><code>## [1] &quot;アーカイブにあるパッケージの数&quot;</code></pre>
+<pre><code>## [1] &quot;18019&quot;</code></pre>
+<pre><code>## [1] &quot;削除されたパッケージの数&quot;</code></pre>
+<pre><code>## [1] &quot;3812&quot;</code></pre>
+<pre><code>## [1] &quot;全パッケージ数&quot;</code></pre>
+<pre><code>## [1] &quot;22528&quot;</code></pre>
+<pre><code>## [1] &quot;削除されたパッケージ数/全パッケージの数x100%&quot;</code></pre>
+<pre><code>## [1] &quot;16.9%&quot;</code></pre>
+</section>
+<section id="アーカイブされた年" class="slide level2">
+<h2>アーカイブされた年</h2>
+<ul>
+<li>2017年以降にアーカイブされたパッケージ数</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">2017</th>
+<th style="text-align: right;">2018</th>
+<th style="text-align: right;">2019</th>
+<th style="text-align: right;">2020</th>
+<th style="text-align: right;">2021</th>
+<th style="text-align: right;">2022</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">164</td>
+<td style="text-align: right;">432</td>
+<td style="text-align: right;">379</td>
+<td style="text-align: right;">882</td>
+<td style="text-align: right;">703</td>
+<td style="text-align: right;">46</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p>2020年、2021年が特に多い</p>
+<ul>
+<li>2020年4月にR4.0.0がリリースされた関係？</li>
+</ul></li>
+</ul>
+<p><br />
+</p>
+<ul>
+<li>おまけ：2016年までにArchiveされたパッケージ数</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">2008</th>
+<th style="text-align: right;">2009</th>
+<th style="text-align: right;">2010</th>
+<th style="text-align: right;">2011</th>
+<th style="text-align: right;">2012</th>
+<th style="text-align: right;">2013</th>
+<th style="text-align: right;">2014</th>
+<th style="text-align: right;">2015</th>
+<th style="text-align: right;">2016</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">54</td>
+<td style="text-align: right;">66</td>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">218</td>
+<td style="text-align: right;">219</td>
+<td style="text-align: right;">262</td>
+<td style="text-align: right;">144</td>
+<td style="text-align: right;">70</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="アーカイブされた理由" class="slide level2">
+<h2>アーカイブされた理由</h2>
+<p><img src="TokyoR96LT_files/figure-revealjs/unnamed-chunk-5-1.png" width="768" /></p>
+</section>
+<section id="おわりに" class="slide level2">
+<h2>おわりに</h2>
+<ul>
+<li><p>毎年数百のライブラリがアーカイブへ</p>
+<ul>
+<li>ここ2年は特に多い</li>
+</ul></li>
+<li><p>理由は”エラー”が多いが、連絡不能なども一定数ある</p>
+<ul>
+<li>連絡可能な連絡先の登録を！</li>
+</ul></li>
+<li><p>OSS開発者・メンテナの方に感謝…！</p></li>
+</ul>
+</section>
+<section id="enjoy" class="title-slide slide level1">
+<h1>Enjoy!</h1>
+<p><img src="Figs/self.jpg" width="25%"/></p>
+</section>
+    </div>
+  </div>
+
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/dist/reveal.js"></script>
+
+  <!-- reveal.js plugins -->
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/plugin/notes/notes.js"></script>
+  
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/plugin/search/search.js"></script>
+  
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/plugin/zoom/zoom.js"></script>
+  
+
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/plugin/fullscreen/plugin.js"></script>
+  
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/plugin/menu/menu.js"></script>
+  <link rel="stylesheet" href="TokyoR96LT_files/reveal.js-4.1.2/plugin/chalkboard/style.css">
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/plugin/chalkboard/plugin.js"></script>
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/plugin/embed-tweet/plugin.js"></script>
+    <link rel="stylesheet" href="TokyoR96LT_files/reveal.js-4.1.2/plugin/highlight/monokai.css">
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/plugin/highlight/highlight.js"></script>
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/plugin/math/math.js"></script>
+  <script src="TokyoR96LT_files/reveal.js-4.1.2/plugin/markdown/markdown.js"></script>
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+        // Display controls in the bottom right corner
+        controls: true,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: true,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'bottom-right',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: 'c/t',
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: false,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: false,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'linear',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: true,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: true,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'default',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'default',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        menu: {
+  
+          numbers: true,
+    
+    
+    
+    
+          markers: false,
+    
+          custom: false,
+          themes: false,
+  transitions: false
+
+    
+    
+        },
+
+
+
+        chalkboard: {
+          theme: "chalkboard",
+        },
+
+
+        math: {
+          mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [
+          RevealMath,
+          RevealHighlight,
+          RevealMarkdown,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom,
+          RevealChalkboard,
+          RevealMenu,
+          RevealFullscreen,
+          RevealEmbedTweet
+        ]
+      });
+    </script>
+    </body>
+</html>
